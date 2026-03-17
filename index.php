@@ -1,4 +1,9 @@
-<?php include 'db.php'; ?>
+<?php 
+include 'db.php'; 
+
+// Define your categories here
+$categories = ['Food', 'Transport', 'Rent', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Other'];
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -14,9 +19,16 @@
         <h2>💰 Add New Expense</h2>
         <form method="POST" action="add.php">
             <input type="text" name="title" placeholder="Expense Name" required>
-            <input type="text" name="category" placeholder="Category" required>
+            
+            <select name="category" required>
+                <option value="" disabled selected>Select Category</option>
+                <?php foreach($categories as $cat): ?>
+                    <option value="<?php echo $cat; ?>"><?php echo $cat; ?></option>
+                <?php endforeach; ?>
+            </select>
+
             <input type="number" step="0.01" name="amount" placeholder="0.00" required>
-            <input type="date" name="date" required>
+            <input type="date" name="date" value="<?php echo date('Y-m-d'); ?>" required>
             <textarea name="description" placeholder="Optional description..."></textarea>
             <button type="submit">Add Expense</button>
         </form>
@@ -46,7 +58,6 @@
             <tbody>
                 <?php
                 $result = $conn->query("SELECT * FROM expenses ORDER BY date DESC");
-
                 while($row = $result->fetch_assoc()) {
                     echo "<tr>
                         <td><strong>" . htmlspecialchars($row['title']) . "</strong></td>

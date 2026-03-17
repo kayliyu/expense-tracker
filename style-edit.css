@@ -1,0 +1,48 @@
+/* Container for the whole page content */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Specific styling for the Edit Form to make it vertical/organized */
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 500px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-update {
+    background-color: #27ae60;
+    flex: 2;
+}
+
+.btn-cancel {
+    background-color: #95a5a6;
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-align: center;
+    flex: 1;
+    font-size: 14px;
+    font-weight: bold;
+}

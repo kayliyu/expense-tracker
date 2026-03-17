@@ -1,30 +1,94 @@
 <?php
 include 'db.php';
 
-$id = $_GET['id'];
-$result = $conn->query("SELECT * FROM expenses WHERE id=$id");
+// 1. Get the ID from the URL safely
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+// Define your categories (Must match index.php)
+$categories = ['Food', 'Transport', 'Rent', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Other'];
+
+// 2. Fetch the current data for this expense
+$stmt = $conn->prepare("SELECT * FROM expenses WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
 $row = $result->fetch_assoc();
-?>
 
-<form method="POST">
-    <input type="text" name="title" value="<?= $row['title'] ?>">
-    <input type="text" name="category" value="<?= $row['category'] ?>">
-    <input type="number" step="0.01" name="amount" value="<?= $row['amount'] ?>">
-    <input type="date" name="date" value="<?= $row['date'] ?>">
-    <textarea name="description"><?= $row['description'] ?></textarea>
-    <button type="submit">Update</button>
-</form>
+if (!$row) {
+    die("Expense not found.");
+}
 
-<?php
+// 3. Handle the Update Logic
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $conn->query("UPDATE expenses SET 
-        title='{$_POST['title']}',
-        category='{$_POST['category']}',
-        amount='{$_POST['amount']}',
-        date='{$_POST['date']}',
-        description='{$_POST['description']}'
-        WHERE id=$id");
+    $title       = $_POST['title'];
+    $category    = $_POST['category'];
+    $amount      = $_POST['amount'];
+    $date        = $_POST['date'];
+    $description = $_POST['description'];
 
-    header("Location: index.php");
+    $update_stmt = $conn->prepare("UPDATE expenses SET title=?, category=?, amount=?, date=?, description=? WHERE id=?");
+    $update_stmt->bind_param("ssdssi", $title, $category, $amount, $date, $description, $id);
+
+    if ($update_stmt->execute()) {
+        header("Location: index.php?updated=1");
+        exit();
+    } else {
+        echo "Error updating record: " . $conn->error;
+    }
 }
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Expense</title>
+    <link rel="stylesheet" href="style-edit.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2>✏️ Edit Expense</h2>
+        
+        <form method="POST" class="edit-form">
+            <div class="form-group">
+                <label>Expense Name</label>
+                <input type="text" name="title" value="<?= htmlspecialchars($row['title']) ?>" required>
+            </div>
+
+            <div class="form-group">
+                <label>Category</label>
+                <select name="category" required>
+                    <?php foreach($categories as $cat): ?>
+                        <option value="<?= $cat ?>" <?= ($row['category'] == $cat) ? 'selected' : '' ?>>
+                            <?= $cat ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Amount</label>
+                <input type="number" step="0.01" name="amount" value="<?= $row['amount'] ?>" required>
+            </div>
+
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="date" value="<?= $row['date'] ?>" required>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Description</label>
+                <textarea name="description"><?= htmlspecialchars($row['description']) ?></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-update">Update Expense</button>
+                <a href="index.php" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>
